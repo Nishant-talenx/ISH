@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nish</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Full-Screen Layout */
+        body {
+            background: linear-gradient(135deg, #000, #222);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            width: 90%;
+            max-width: 900px;
+            height: 85vh;
+            background: #1a1a1a;
+            border-radius: 15px;
+            box-shadow: 0px 4px 20px rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        /* Side Panel */
+        .side-panel {
+            width: 220px;
+            background: #121212;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .side-panel h2 {
+            color: #00bfff;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .side-panel h3 {
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .side-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side-panel li {
+            background: #222;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .side-panel li:hover {
+            background: #00bfff;
+            color: black;
+        }
+
+        /* Chat Section */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #181818;
+            border-radius: 15px;
+        }
+
+        /* Chat Header */
+        .chat-header {
+            background: #000;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* Chat Box */
+        .chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #121212;
+        }
+
+        /* User & Bot Messages */
+        .user-message,
+        .bot-message {
+            max-width: 75%;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #00bfff;
+            color: black;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: #333;
+            color: white;
+        }
+
+        /* Keyboard Panel (Rounded Cuboidal) */
+        .chat-input {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #000;
+            border-top: 1px solid #444;
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* Search Box */
+        .search-box {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            background: #222;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-box::placeholder {
+            color: #888;
+        }
+
+        .search-box:focus {
+            background: #333;
+            color: white;
+        }
+
+        /* Send Button */
+        .send-btn {
+            margin-left: 10px;
+            background: #00bfff;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 50%;
+            color: black;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .send-btn:hover {
+            background: #008cff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Side Panel -->
+        <div class="side-panel">
+            <h2>🩺 Nish</h2>
+            <h3>Features of Nish...</h3>
+            <ul>
+                <li>💊 Symptoms Check</li>
+                <li>📜 Medicine Info</li>
+                <li>🥗 Diet Plans</li>
+                <li>⚕️ Health Tips</li>
+                <li>💉 Vaccination Tracker</li>
+                <li>🧑‍⚕️ Virtual Doctor</li>
+                <li>📅 Appointment Booking</li>
+                <li>📝 Health Records</li>
+            </ul>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-container">
+            <div class="chat-header">Nish Medical Chatbot</div>
+            <div class="chat-box" id="chat-box"></div>
+
+            <!-- Keyboard Panel -->
+            <div class="chat-input">
+                <input type="text" id="user-input" class="search-box" placeholder="Enter your symptoms...">
+                <button id="send-btn" class="send-btn">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Expanded dataset of diseases and their information
+        const diseaseInfo = {
+            "fever": {
+                medication: "Paracetamol",
+                include: "Warm fluids, fruits",
+                exclude: "Spicy foods",
+                dosage: "Take 500mg every 4-6 hours as needed, not exceeding 4g per day."
+            },
+            "common cold": {
+                medication: "Cetirizine, Paracetamol",
+                include: "Vitamin C, herbal teas",
+                exclude: "Dairy, cold drinks",
+                dosage: "Cetirizine 10mg once daily, Paracetamol 500mg every 4-6 hours."
+            },
+            "cough": {
+                medication: "Dextromethorphan (dry), Ambroxol (wet)",
+                include: "Honey, turmeric milk",
+                exclude: "Cold foods, oily foods",
+                dosage: "Dextromethorphan 10mg every 4-6 hours, Ambroxol 30mg twice a day."
+            },
+            "sore throat": {
+                medication: "Throat lozenges, Ibuprofen",
+                include: "Warm salt water, ginger",
+                exclude: "Spicy foods, alcohol",
+                dosage: "Throat lozenges as needed, Ibuprofen 200mg every 4-6 hours."
+            },
+            "typhoid": {
+                medication: "Cefixime, Azithromycin",
+                include: "Soft foods, boiled potatoes",
+                exclude: "Raw vegetables",
+                dosage: "Cefixime 400mg once daily, Azithromycin 500mg once daily."
+            },
+            "malaria": {
+                medication: "Chloroquine, Artemisinin",
+                include: "Coconut water, citrus fruits",
+                exclude: "Oily, fried foods",
+                dosage: "Chloroquine 250mg once daily, Artemisinin 20mg every 12 hours."
+            },
+            "dengue": {
+                medication: "Paracetamol",
+                include: "Papaya leaf juice, fluids",
+                exclude: "NSAIDs (Aspirin, Ibuprofen)",
+                dosage: "Paracetamol 500mg every 4-6 hours, not exceeding 4g per day."
+            },
+            "chickenpox": {
+                medication: "Acyclovir",
+                include: "Soft foods, fluids",
+                exclude: "Spicy foods",
+                dosage: "Acyclovir 400mg 5 times a day for 7 days."
+            },
+            "measles": {
+                medication: "Vitamin A supplements",
+                include: "Leafy greens, fruits",
+                exclude: "Processed foods",
+                dosage: "Vitamin A 200,000 IU per dose for 2 days."
+            },
+            "tuberculosis": {
+                medication: "Isoniazid, Rifampin",
+                include: "Protein-rich foods, dairy",
+                exclude: "Alcohol, tobacco",
+                dosage: "Isoniazid 300mg once daily, Rifampin 10mg/kg body weight once daily."
+            },
+            "acidity": {
+                medication: "Pantoprazole, Omeprazole",
+                include: "Oatmeal, bananas",
+                exclude: "Spicy foods",
+                dosage: "Pantoprazole 40mg once daily, Omeprazole 20mg once daily."
+            },
+            "indigestion": {
+                medication: "Digene, Domperidone",
+                include: "Papaya, fennel seeds",
+                exclude: "Fried foods",
+                dosage: "Digene 1-2 tablets after meals, Domperidone 10mg 3 times a day."
+            },
+            "food poisoning": {
+                medication: "ORS, Ondansetron",
+                include: "Boiled rice, yogurt",
+                exclude: "Dairy, processed foods",
+                dosage: "ORS as directed, Ondansetron 4mg every 8 hours."
+            },
+            "diarrhea": {
+                medication: "ORS, Loperamide",
+                include: "Bananas, plain rice",
+                exclude: "Dairy, caffeine",
+                dosage: "ORS as directed, Loperamide 2mg after the first loose stool, then 1mg after each subsequent stool."
+            },
+            "constipation": {
+                medication: "Isabgol husk, Lactulose",
+                include: "Fiber, whole grains",
+                exclude: "Red meat, processed foods",
+                dosage: "Isabgol husk 10g once daily, Lactulose 10-20ml once daily."
+            },
+            "piles": {
+                medication: "Lignocaine cream, Daflon",
+                include: "Fiber-rich foods",
+                exclude: "Alcohol, spicy foods",
+                dosage: "Lignocaine cream as needed, Daflon 500mg twice daily."
+            },
+            "jaundice": {
+                medication: "Ursodeoxycholic acid",
+                include: "Sugarcane juice, fruits",
+                exclude: "Fatty foods",
+                dosage: "Ursodeoxycholic acid 10mg/kg body weight once daily."
+            },
+            "appendicitis": {
+                medication: "Painkillers (before surgery)",
+                include: "Fluids, soft foods",
+                exclude: "Spicy foods",
+                dosage: "Painkillers as prescribed before surgery."
+            },
+            "liver cirrhosis": {
+                medication: "Diuretics, Vitamin K",
+                include: "Leafy greens, garlic",
+                exclude: "Alcohol, junk food",
+                dosage: "Diuretics as prescribed, Vitamin K 10mg once daily."
+            },
+            "gallstones": {
+                medication: "Ursodiol",
+                include: "Fiber-rich foods",
+                exclude: "Fried foods",
+                dosage: "Ursodiol 300mg twice daily."
+            },
+            "urinary tract infection": {
+                medication: "Nitrofurantoin, Cranberry supplements",
+                include: "Cranberry juice",
+                exclude: "Caffeine, alcohol",
+                dosage: "Nitrofurantoin 100mg twice daily, Cranberry supplements as per label."
+            },
+            "kidney stones": {
+                medication: "Potassium Citrate",
+                include: "Citrus fruits",
+                exclude: "Nuts, chocolate",
+                dosage: "Potassium Citrate 10mEq twice daily."
+            },
+            "pcos": {
+                medication: "Metformin",
+                include: "Lean proteins",
+                exclude: "Sugar, processed carbs",
+                dosage: "Metformin 500mg twice daily."
+            },
+            "menstrual cramps": {
+                medication: "Ibuprofen",
+                include: "Magnesium-rich foods",
+                exclude: "Caffeine",
+                dosage: "Ibuprofen 200-400mg every 4-6 hours as needed."
+            },
+            "anemia": {
+                medication: "Ferrous Sulfate",
+                include: "Iron-rich foods",
+                exclude: "Tea/coffee",
+                dosage: "Ferrous Sulfate 325mg once daily."
+            },
+            "headache": {
+                medication: "Paracetamol",
+                include: "Magnesium-rich foods",
+                exclude: "Caffeine",
+                dosage: "Paracetamol 500mg every 4-6 hours."
+            },
+            "high blood pressure": {
+                medication: "Amlodipine",
+                include: "Leafy greens",
+                exclude: "Salt, caffeine",
+                dosage: "Amlodipine 5-10mg once daily."
+            },
+            "low blood pressure": {
+                medication: "Fludrocortisone",
+                include: "Salty foods",
+                exclude: "Alcohol",
+                dosage: "Fludrocortisone 0.1mg once daily."
+            },
+            "heart disease": {
+                medication: "Aspirin, Statins",
+                include: "Whole grains",
+                exclude: "Fried foods",
+                dosage: "Aspirin 75-100mg daily, Statins as prescribed."
+            },
+            "stroke prevention": {
+                medication: "Blood thinners",
+                include: "Leafy greens",
+                exclude: "Excess sodium",
+                dosage: "Blood thinners as prescribed by doctor."
+            },
+            "skin allergies": {
+                medication: "Cetirizine",
+                include: "Vitamin C foods",
+                exclude: "Dairy",
+                dosage: "Cetirizine 10mg once daily."
+            },
+            "acne": {
+                medication: "Salicylic Acid",
+                include: "Antioxidant-rich foods",
+                exclude: "Sugar, dairy",
+                dosage: "Salicylic Acid 2% solution applied to affected areas twice daily."
+            },
+            "arthritis": {
+                medication: "Painkillers, Glucosamine",
+                include: "Omega-3 rich foods",
+                exclude: "Processed foods",
+                dosage: "Painkillers as prescribed, Glucosamine 1500mg once daily."
+            },
+            "osteoporosis": {
+                medication: "Calcium supplements",
+                include: "Dairy, nuts",
+                exclude: "Carbonated drinks",
+                dosage: "Calcium 1000-1200mg once daily."
+            },
+            "depression": {
+                medication: "SSRIs (prescription only)",
+                include: "Omega-3s, nuts",
+                exclude: "Caffeine, alcohol",
+                dosage: "SSRIs as prescribed by doctor."
+            },
+            "insomnia": {
+                medication: "Melatonin",
+                include: "Warm milk, chamomile tea",
+                exclude: "Caffeine",
+                dosage: "Melatonin 3-5mg 30 minutes before bedtime."
+            },
+            "obesity": {
+                medication: "Orlistat",
+                include: "Fiber, lean proteins",
+                exclude: "Junk food",
+                dosage: "Orlistat 60mg with each meal containing fat."
+            },
+            "diabetes": {
+                medication: "Metformin",
+                include: "Whole grains",
+                exclude: "Sugar",
+                dosage: "Metformin 500mg twice daily."
+            },
+            "thyroid": {
+                medication: "Levothyroxine",
+                include: "Iodine-rich foods",
+                exclude: "Cruciferous vegetables",
+                dosage: "Levothyroxine as prescribed by doctor."
+            },
+            "gout": {
+                medication: "Allopurinol",
+                include: "Cherries, whole grains",
+                exclude: "Alcohol, red meat",
+                dosage: "Allopurinol 100-300mg once daily."
+            },
+            "asthma": {
+                medication: "Albuterol, Inhaled Corticosteroids",
+                include: "Omega-3 rich foods, fruits",
+                exclude: "Sulfites, processed foods",
+                dosage: "Albuterol 1-2 puffs every 4-6 hours as needed, Corticosteroids as prescribed."
+            },
+            "migraine": {
+                medication: "Sumatriptan, Ibuprofen",
+                include: "Magnesium-rich foods, hydration",
+                exclude: "Caffeine, aged cheeses",
+                dosage: "Sumatriptan 50mg at onset, Ibuprofen 400mg every 4-6 hours as needed."
+            },
+            "eczema": {
+                medication: "Hydrocortisone cream, Antihistamines",
+                include: "Probiotic-rich foods, oatmeal",
+                exclude: "Dairy, synthetic fabrics",
+                dosage: "Hydrocortisone 1% cream twice daily, Antihistamines as prescribed."
+            },
+            "fibromyalgia": {
+                medication: "Duloxetine, Pregabalin",
+                include: "Whole grains, lean proteins",
+                exclude: "Sugar, caffeine",
+                dosage: "Duloxetine 60mg once daily, Pregabalin as prescribed."
+            },
+            "marfan syndrome": {
+                medication: "Beta-blockers, Losartan",
+                include: "Calcium-rich foods, hydration",
+                exclude: "High-sodium foods, heavy lifting",
+                dosage: "Beta-blockers as prescribed, Losartan 50mg once daily."
+            },
+            "ehlers-danlos syndrome": {
+                medication: "Pain relievers, Vitamin C",
+                include: "Collagen-supporting foods, hydration",
+                exclude: "High-impact activities, processed foods",
+                dosage: "Pain relievers as prescribed, Vitamin C 500mg daily."
+            },
+            "celiac disease": {
+                medication: "Gluten-free diet, Vitamin supplements",
+                include: "Gluten-free grains, fresh vegetables",
+                exclude: "Wheat, barley, rye",
+                dosage: "Follow gluten-free diet, supplements as prescribed."
+            },
+            "psoriasis": {
+                medication: "Topical corticosteroids, Methotrexate",
+                include: "Anti-inflammatory foods, fish oil",
+                exclude: "Alcohol, red meat",
+                dosage: "Corticosteroids as prescribed, Methotrexate 7.5-25mg weekly."
+            },
+            "lupus": {
+                medication: "Hydroxychloroquine, Prednisone",
+                include: "Omega-3s, leafy greens",
+                exclude: "Alfalfa sprouts, high-sodium foods",
+                dosage: "Hydroxychloroquine 200-400mg daily, Prednisone as prescribed."
+            },
+            "gastritis": {
+                medication: "Omeprazole, Antacids",
+                include: "Bland foods, bananas",
+                exclude: "Spicy foods, alcohol",
+                dosage: "Omeprazole 20mg once daily, Antacids as needed."
+            },
+            "hypertension": {
+                medication: "Lisinopril, Hydrochlorothiazide",
+                include: "Leafy greens, berries",
+                exclude: "Salt, processed foods",
+                dosage: "Lisinopril 10-40mg once daily, Hydrochlorothiazide 12.5-25mg daily."
+            },
+            "hypothyroidism": {
+                medication: "Levothyroxine",
+                include: "Iodine-rich foods, seafood",
+                exclude: "Soy, cruciferous vegetables",
+                dosage: "Levothyroxine 50-100mcg once daily."
+            },
+            "hyperthyroidism": {
+                medication: "Methimazole, Propranolol",
+                include: "Low-iodine foods, vegetables",
+                exclude: "Iodized salt, seaweed",
+                dosage: "Methimazole 5-30mg daily, Propranolol as prescribed."
+            },
+            "lyme disease": {
+                medication: "Doxycycline, Amoxicillin",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Sugary foods, alcohol",
+                dosage: "Doxycycline 100mg twice daily for 14-21 days, Amoxicillin as prescribed."
+            },
+            "rheumatoid arthritis": {
+                medication: "Methotrexate, Adalimumab",
+                include: "Omega-3s, turmeric",
+                exclude: "Processed foods, red meat",
+                dosage: "Methotrexate 7.5-25mg weekly, Adalimumab as prescribed."
+            },
+            "chronic fatigue syndrome": {
+                medication: "Low-dose antidepressants, CoQ10",
+                include: "Balanced diet, hydration",
+                exclude: "Caffeine, sugar",
+                dosage: "Antidepressants as prescribed, CoQ10 100-200mg daily."
+            },
+            "irritable bowel syndrome": {
+                medication: "Loperamide, Peppermint oil",
+                include: "Soluble fiber, probiotics",
+                exclude: "Caffeine, dairy",
+                dosage: "Loperamide 2mg as needed, Peppermint oil as per label."
+            },
+            "crohn’s disease": {
+                medication: "Mesalamine, Azathioprine",
+                include: "Low-fiber foods, lean proteins",
+                exclude: "Raw vegetables, nuts",
+                dosage: "Mesalamine 2.4-4.8g daily, Azathioprine as prescribed."
+            },
+            "ulcerative colitis": {
+                medication: "Sulfasalazine, Infliximab",
+                include: "Soft foods, hydration",
+                exclude: "Spicy foods, dairy",
+                dosage: "Sulfasalazine 2-4g daily, Infliximab as prescribed."
+            },
+            "hepatitis b": {
+                medication: "Tenofovir, Entecavir",
+                include: "Leafy greens, whole grains",
+                exclude: "Alcohol, fatty foods",
+                dosage: "Tenofovir 300mg once daily, Entecavir as prescribed."
+            },
+            "hepatitis c": {
+                medication: "Sofosbuvir, Ledipasvir",
+                include: "Antioxidant-rich foods, hydration",
+                exclude: "Alcohol, processed foods",
+                dosage: "Sofosbuvir 400mg daily, Ledipasvir as prescribed."
+            },
+            "hiv/aids": {
+                medication: "Antiretroviral therapy",
+                include: "Protein-rich foods, fruits",
+                exclude: "Raw meats, unpasteurized dairy",
+                dosage: "Antiretrovirals as prescribed."
+            },
+            "copd": {
+                medication: "Tiotropium, Salmeterol",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Smoking, pollutants",
+                dosage: "Tiotropium 18mcg daily, Salmeterol as prescribed."
+            },
+            "emphysema": {
+                medication: "Bronchodilators, Oxygen therapy",
+                include: "Light proteins, vegetables",
+                exclude: "Smoking, dairy",
+                dosage: "Bronchodilators as prescribed, Oxygen as needed."
+            },
+            "bronchitis": {
+                medication: "Guaifenesin, Antibiotics (if bacterial)",
+                include: "Warm fluids, honey",
+                exclude: "Cold foods, irritants",
+                dosage: "Guaifenesin 600mg every 12 hours, Antibiotics as prescribed."
+            },
+            "pneumonia": {
+                medication: "Levofloxacin, Azithromycin",
+                include: "Hydration, soft foods",
+                exclude: "Cold drinks, spicy foods",
+                dosage: "Levofloxacin 750mg daily for 5 days, Azithromycin as prescribed."
+            },
+            "pulmonary fibrosis": {
+                medication: "Pirfenidone, Nintedanib",
+                include: "Antioxidant-rich foods, hydration",
+                exclude: "Smoking, processed foods",
+                dosage: "Pirfenidone 801mg three times daily, Nintedanib as prescribed."
+            },
+            "sarcoidosis": {
+                medication: "Prednisone, Methotrexate",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "High-calcium foods, smoking",
+                dosage: "Prednisone 5-40mg daily, Methotrexate as prescribed."
+            },
+            "amyotrophic lateral sclerosis": {
+                medication: "Riluzole, Edaravone",
+                include: "High-calorie foods, hydration",
+                exclude: "Processed foods, alcohol",
+                dosage: "Riluzole 50mg twice daily, Edaravone as prescribed."
+            },
+            "multiple sclerosis": {
+                medication: "Interferon beta, Ocrelizumab",
+                include: "Omega-3s, vitamin D",
+                exclude: "Processed foods, stress",
+                dosage: "Interferon beta as prescribed, Ocrelizumab as prescribed."
+            },
+            "parkinson’s disease": {
+                medication: "Levodopa, Carbidopa",
+                include: "Protein-rich foods, hydration",
+                exclude: "High-fat meals, alcohol",
+                dosage: "Levodopa/Carbidopa 100/25mg 3-4 times daily."
+            },
+            "alzheimer’s disease": {
+                medication: "Donepezil, Memantine",
+                include: "Antioxidant-rich foods, nuts",
+                exclude: "Sugary foods, alcohol",
+                dosage: "Donepezil 5-10mg daily, Memantine as prescribed."
+            },
+            "epilepsy": {
+                medication: "Levetiracetam, Valproate",
+                include: "Balanced diet, hydration",
+                exclude: "Alcohol, caffeine",
+                dosage: "Levetiracetam 500-1500mg twice daily, Valproate as prescribed."
+            },
+            "huntington’s disease": {
+                medication: "Tetrabenazine, Antidepressants",
+                include: "High-calorie foods, hydration",
+                exclude: "Alcohol, caffeine",
+                dosage: "Tetrabenazine 12.5-50mg daily, Antidepressants as prescribed."
+            },
+            "myasthenia gravis": {
+                medication: "Pyridostigmine, Prednisone",
+                include: "Balanced diet, hydration",
+                exclude: "Magnesium supplements, stress",
+                dosage: "Pyridostigmine 60mg every 4-6 hours, Prednisone as prescribed."
+            },
+            "guillain-barré syndrome": {
+                medication: "IV Immunoglobulin, Plasma exchange",
+                include: "Soft foods, hydration",
+                exclude: "High-fat foods, stress",
+                dosage: "IV Immunoglobulin as prescribed, Plasma exchange as needed."
+            },
+            "stroke": {
+                medication: "Aspirin, Tissue plasminogen activator",
+                include: "Leafy greens, whole grains",
+                exclude: "High-sodium foods, alcohol",
+                dosage: "Aspirin 81-325mg daily, tPA as prescribed."
+            },
+            "deep vein thrombosis": {
+                medication: "Heparin, Warfarin",
+                include: "Hydration, leafy greens",
+                exclude: "High-vitamin K foods, alcohol",
+                dosage: "Heparin as prescribed, Warfarin 2-10mg daily."
+            },
+            "pulmonary embolism": {
+                medication: "Apixaban, Rivaroxaban",
+                include: "Hydration, light proteins",
+                exclude: "High-fat foods, alcohol",
+                dosage: "Apixaban 10mg twice daily for 7 days, then 5mg twice daily."
+            },
+            "atrial fibrillation": {
+                medication: "Apixaban, Metoprolol",
+                include: "Leafy greens, hydration",
+                exclude: "Caffeine, alcohol",
+                dosage: "Apixaban 5mg twice daily, Metoprolol as prescribed."
+            },
+            "heart failure": {
+                medication: "Furosemide, Lisinopril",
+                include: "Low-sodium foods, hydration",
+                exclude: "Salt, fatty foods",
+                dosage: "Furosemide 20-80mg daily, Lisinopril 5-40mg daily."
+            },
+            "cardiomyopathy": {
+                medication: "Carvedilol, Spironolactone",
+                include: "Low-sodium foods, hydration",
+                exclude: "Alcohol, high-fat foods",
+                dosage: "Carvedilol 6.25-25mg twice daily, Spironolactone as prescribed."
+            },
+            "pericarditis": {
+                medication: "Ibuprofen, Colchicine",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Spicy foods, alcohol",
+                dosage: "Ibuprofen 600mg every 6-8 hours, Colchicine 0.6mg twice daily."
+            },
+            "endocarditis": {
+                medication: "Vancomycin, Gentamicin",
+                include: "Soft foods, hydration",
+                exclude: "Raw foods, alcohol",
+                dosage: "Vancomycin as prescribed, Gentamicin as prescribed."
+            },
+            "aortic aneurysm": {
+                medication: "Beta-blockers, Statins",
+                include: "Low-sodium foods, hydration",
+                exclude: "Heavy lifting, smoking",
+                dosage: "Beta-blockers as prescribed, Statins as prescribed."
+            },
+            "peripheral artery disease": {
+                medication: "Cilostazol, Aspirin",
+                include: "Leafy greens, hydration",
+                exclude: "Smoking, fatty foods",
+                dosage: "Cilostazol 100mg twice daily, Aspirin 81mg daily."
+            },
+            "varicose veins": {
+                medication: "Compression therapy, Daflon",
+                include: "Fiber-rich foods, hydration",
+                exclude: "Prolonged standing, tight clothing",
+                dosage: "Daflon 500mg twice daily, Compression as needed."
+            },
+            "hemophilia": {
+                medication: "Factor VIII, Desmopressin",
+                include: "Balanced diet, hydration",
+                exclude: "NSAIDs, high-impact activities",
+                dosage: "Factor VIII as prescribed, Desmopressin as prescribed."
+            },
+            "sickle cell anemia": {
+                medication: "Hydroxyurea, Folic acid",
+                include: "Hydration, leafy greens",
+                exclude: "Dehydration, extreme temperatures",
+                dosage: "Hydroxyurea 15-35mg/kg daily, Folic acid 1mg daily."
+            },
+            "thalassemia": {
+                medication: "Blood transfusions, Deferasirox",
+                include: "Iron-poor foods, hydration",
+                exclude: "Iron-rich foods, alcohol",
+                dosage: "Transfusions as prescribed, Deferasirox 20-40mg/kg daily."
+            },
+            "leukemia": {
+                medication: "Chemotherapy, Imatinib",
+                include: "Soft foods, hydration",
+                exclude: "Raw foods, alcohol",
+                dosage: "Chemotherapy as prescribed, Imatinib 400-600mg daily."
+            },
+            "lymphoma": {
+                medication: "Rituximab, Chemotherapy",
+                include: "Protein-rich foods, hydration",
+                exclude: "Alcohol, processed foods",
+                dosage: "Rituximab as prescribed, Chemotherapy as prescribed."
+            },
+            "multiple myeloma": {
+                medication: "Lenalidomide, Bortezomib",
+                include: "Hydration, light proteins",
+                exclude: "High-calcium foods, alcohol",
+                dosage: "Lenalidomide 25mg daily, Bortezomib as prescribed."
+            },
+            "polycythemia vera": {
+                medication: "Aspirin, Hydroxyurea",
+                include: "Hydration, low-iron foods",
+                exclude: "Red meat, alcohol",
+                dosage: "Aspirin 81mg daily, Hydroxyurea 500-1000mg daily."
+            },
+            "idiopathic thrombocytopenic purpura": {
+                medication: "Prednisone, Rituximab",
+                include: "Balanced diet, hydration",
+                exclude: "NSAIDs, alcohol",
+                dosage: "Prednisone 1mg/kg daily, Rituximab as prescribed."
+            },
+            "von willebrand disease": {
+                medication: "Desmopressin, Tranexamic acid",
+                include: "Balanced diet, hydration",
+                exclude: "NSAIDs, alcohol",
+                dosage: "Desmopressin as prescribed, Tranexamic acid 1-1.5g three times daily."
+            },
+            "aplastic anemia": {
+                medication: "Cyclosporine, ATG",
+                include: "Iron-rich foods, hydration",
+                exclude: "Raw foods, alcohol",
+                dosage: "Cyclosporine as prescribed, ATG as prescribed."
+            },
+            "fanconi anemia": {
+                medication: "Blood transfusions, Androgens",
+                include: "Balanced diet, hydration",
+                exclude: "Alcohol, processed foods",
+                dosage: "Transfusions as prescribed, Androgens as prescribed."
+            },
+            "paroxysmal nocturnal hemoglobinuria": {
+                medication: "Eculizumab, Iron supplements",
+                include: "Iron-rich foods, hydration",
+                exclude: "Raw foods, alcohol",
+                dosage: "Eculizumab as prescribed, Iron as prescribed."
+            },
+            "essential thrombocythemia": {
+                medication: "Aspirin, Anagrelide",
+                include: "Low-iron foods, hydration",
+                exclude: "Red meat, alcohol",
+                dosage: "Aspirin 81mg daily, Anagrelide 0.5-2mg daily."
+            },
+            "myelodysplastic syndromes": {
+                medication: "Azacitidine, Lenalidomide",
+                include: "Soft foods, hydration",
+                exclude: "Raw foods, alcohol",
+                dosage: "Azacitidine as prescribed, Lenalidomide 10mg daily."
+            },
+            "chronic kidney disease": {
+                medication: "Erythropoietin, Calcium supplements",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-potassium foods, processed foods",
+                dosage: "Erythropoietin as prescribed, Calcium 500-1000mg daily."
+            },
+            "glomerulonephritis": {
+                medication: "Prednisone, Cyclophosphamide",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-protein foods, alcohol",
+                dosage: "Prednisone 1mg/kg daily, Cyclophosphamide as prescribed."
+            },
+            "nephrotic syndrome": {
+                medication: "Prednisone, Diuretics",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-protein foods, alcohol",
+                dosage: "Prednisone 1mg/kg daily, Diuretics as prescribed."
+            },
+            "polycystic kidney disease": {
+                medication: "Tolvaptan, Blood pressure meds",
+                include: "Low-sodium foods, hydration",
+                exclude: "Caffeine, high-protein foods",
+                dosage: "Tolvaptan as prescribed, BP meds as prescribed."
+            },
+            "acute kidney injury": {
+                medication: "Diuretics, Electrolyte management",
+                include: "Hydration, soft foods",
+                exclude: "High-potassium foods, alcohol",
+                dosage: "Diuretics as prescribed, Electrolytes as needed."
+            },
+            "renal artery stenosis": {
+                medication: "Aspirin, Statins",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-fat foods, smoking",
+                dosage: "Aspirin 81mg daily, Statins as prescribed."
+            },
+            "interstitial nephritis": {
+                medication: "Prednisone, Antihistamines",
+                include: "Hydration, bland foods",
+                exclude: "NSAIDs, alcohol",
+                dosage: "Prednisone 1mg/kg daily, Antihistamines as prescribed."
+            },
+            "diabetic nephropathy": {
+                medication: "Lisinopril, SGLT2 inhibitors",
+                include: "Low-sodium foods, hydration",
+                exclude: "Sugary foods, high-protein foods",
+                dosage: "Lisinopril 10-40mg daily, SGLT2 inhibitors as prescribed."
+            },
+            "alport syndrome": {
+                medication: "ACE inhibitors, Supportive care",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-protein foods, alcohol",
+                dosage: "ACE inhibitors as prescribed, Supportive care as needed."
+            },
+            "fabry disease": {
+                medication: "Agalsidase beta, Pain relievers",
+                include: "Balanced diet, hydration",
+                exclude: "Alcohol, processed foods",
+                dosage: "Agalsidase beta as prescribed, Pain relievers as needed."
+            },
+            "cystinuria": {
+                medication: "Potassium citrate, Tiopronin",
+                include: "Hydration, low-sodium foods",
+                exclude: "High-protein foods, alcohol",
+                dosage: "Potassium citrate 10mEq three times daily, Tiopronin as prescribed."
+            },
+            "bartter syndrome": {
+                medication: "Potassium supplements, NSAIDs",
+                include: "High-potassium foods, hydration",
+                exclude: "Low-sodium foods, alcohol",
+                dosage: "Potassium as prescribed, NSAIDs as prescribed."
+            },
+            "gitelman syndrome": {
+                medication: "Magnesium supplements, Potassium",
+                include: "High-magnesium foods, hydration",
+                exclude: "Low-sodium foods, alcohol",
+                dosage: "Magnesium 300-600mg daily, Potassium as prescribed."
+            },
+            "liddle syndrome": {
+                medication: "Amiloride, Triamterene",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-potassium foods, alcohol",
+                dosage: "Amiloride 5-10mg daily, Triamterene as prescribed."
+            },
+            "primary hyperoxaluria": {
+                medication: "Pyridoxine, Hydration",
+                include: "High-fluid intake, low-oxalate foods",
+                exclude: "Spinach, nuts",
+                dosage: "Pyridoxine 5-20mg/kg daily, Hydration as needed."
+            },
+            "hypoglycemia": {
+                medication: "Glucose tablets, Diazoxide",
+                include: "Complex carbs, frequent meals",
+                exclude: "Sugary snacks, alcohol",
+                dosage: "Glucose 15g as needed, Diazoxide as prescribed."
+            },
+            "hyperglycemia": {
+                medication: "Insulin, Metformin",
+                include: "Whole grains, vegetables",
+                exclude: "Sugary foods, processed carbs",
+                dosage: "Insulin as prescribed, Metformin 500-1000mg twice daily."
+            },
+            "cushing’s syndrome": {
+                medication: "Ketoconazole, Metyrapone",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-carb foods, alcohol",
+                dosage: "Ketoconazole 200-400mg daily, Metyrapone as prescribed."
+            },
+            "addison’s disease": {
+                medication: "Hydrocortisone, Fludrocortisone",
+                include: "High-sodium foods, hydration",
+                exclude: "Low-sodium foods, alcohol",
+                dosage: "Hydrocortisone 15-25mg daily, Fludrocortisone 0.1mg daily."
+            },
+            "pheochromocytoma": {
+                medication: "Alpha-blockers, Beta-blockers",
+                include: "Low-tyramine foods, hydration",
+                exclude: "Aged cheeses, alcohol",
+                dosage: "Alpha-blockers as prescribed, Beta-blockers as prescribed."
+            },
+            "hyperaldosteronism": {
+                medication: "Spironolactone, Eplerenone",
+                include: "Low-sodium foods, hydration",
+                exclude: "High-potassium foods, alcohol",
+                dosage: "Spironolactone 25-100mg daily, Eplerenone as prescribed."
+            },
+            "hypopituitarism": {
+                medication: "Hydrocortisone, Levothyroxine",
+                include: "Balanced diet, hydration",
+                exclude: "Stress, alcohol",
+                dosage: "Hydrocortisone 15-25mg daily, Levothyroxine as prescribed."
+            },
+            "diabetes insipidus": {
+                medication: "Desmopressin, Hydration",
+                include: "High-fluid intake, balanced diet",
+                exclude: "Dehydrating foods, alcohol",
+                dosage: "Desmopressin 0.1-0.4mg daily, Hydration as needed."
+            },
+            "hypoparathyroidism": {
+                medication: "Calcium, Vitamin D",
+                include: "Calcium-rich foods, hydration",
+                exclude: "High-phosphorus foods, alcohol",
+                dosage: "Calcium 500-1000mg daily, Vitamin D as prescribed."
+            },
+            "hyperparathyroidism": {
+                medication: "Cinacalcet, Bisphosphonates",
+                include: "Low-calcium foods, hydration",
+                exclude: "High-calcium foods, alcohol",
+                dosage: "Cinacalcet 30-90mg daily, Bisphosphonates as prescribed."
+            },
+            "goiter": {
+                medication: "Levothyroxine, Iodine",
+                include: "Iodine-rich foods, hydration",
+                exclude: "Cruciferous vegetables, soy",
+                dosage: "Levothyroxine as prescribed, Iodine 150mcg daily."
+            },
+            "graves’ disease": {
+                medication: "Methimazole, Propranolol",
+                include: "Low-iodine foods, hydration",
+                exclude: "Iodized salt, seaweed",
+                dosage: "Methimazole 5-30mg daily, Propranolol as prescribed."
+            },
+            "hashimoto’s thyroiditis": {
+                medication: "Levothyroxine",
+                include: "Iodine-rich foods, hydration",
+                exclude: "Soy, cruciferous vegetables",
+                dosage: "Levothyroxine 50-100mcg daily."
+            },
+            "osteoarthritis": {
+                medication: "Acetaminophen, NSAIDs",
+                include: "Omega-3s, leafy greens",
+                exclude: "Processed foods, sugar",
+                dosage: "Acetaminophen 500-1000mg every 4-6 hours, NSAIDs as prescribed."
+            },
+            "ankylosing spondylitis": {
+                medication: "NSAIDs, Adalimumab",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Processed foods, alcohol",
+                dosage: "NSAIDs as prescribed, Adalimumab as prescribed."
+            },
+            "juvenile arthritis": {
+                medication: "NSAIDs, Methotrexate",
+                include: "Omega-3s, fruits",
+                exclude: "Sugary foods, processed foods",
+                dosage: "NSAIDs as prescribed, Methotrexate 10-25mg weekly."
+            },
+            "fibrous dysplasia": {
+                medication: "Bisphosphonates, Pain relievers",
+                include: "Calcium-rich foods, hydration",
+                exclude: "High-impact activities, alcohol",
+                dosage: "Bisphosphonates as prescribed, Pain relievers as needed."
+            },
+            "paget’s disease of bone": {
+                medication: "Bisphosphonates, Calcitonin",
+                include: "Calcium-rich foods, hydration",
+                exclude: "High-protein foods, alcohol",
+                dosage: "Bisphosphonates as prescribed, Calcitonin as prescribed."
+            },
+            "osteogenesis imperfecta": {
+                medication: "Bisphosphonates, Vitamin D",
+                include: "Calcium-rich foods, hydration",
+                exclude: "High-impact activities, alcohol",
+                dosage: "Bisphosphonates as prescribed, Vitamin D 800-1000 IU daily."
+            },
+            "scoliosis": {
+                medication: "Pain relievers, Physical therapy",
+                include: "Calcium-rich foods, hydration",
+                exclude: "Heavy lifting, poor posture",
+                dosage: "Pain relievers as needed, Physical therapy as prescribed."
+            },
+            "kyphosis": {
+                medication: "Pain relievers, Calcium supplements",
+                include: "Calcium-rich foods, hydration",
+                exclude: "Poor posture, heavy lifting",
+                dosage: "Pain relievers as needed, Calcium 1000mg daily."
+            },
+            "lordosis": {
+                medication: "Pain relievers, Physical therapy",
+                include: "Balanced diet, hydration",
+                exclude: "Poor posture, obesity",
+                dosage: "Pain relievers as needed, Physical therapy as prescribed."
+            },
+            "tendinitis": {
+                medication: "NSAIDs, Corticosteroid injections",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Repetitive strain, alcohol",
+                dosage: "NSAIDs as prescribed, Corticosteroids as needed."
+            },
+            "bursitis": {
+                medication: "NSAIDs, Corticosteroid injections",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Repetitive movements, alcohol",
+                dosage: "NSAIDs as prescribed, Corticosteroids as needed."
+            },
+            "plantar fasciitis": {
+                medication: "NSAIDs, Orthotics",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "High-impact activities, poor footwear",
+                dosage: "NSAIDs as prescribed, Orthotics as needed."
+            },
+            "carpal tunnel syndrome": {
+                medication: "NSAIDs, Wrist splints",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Repetitive wrist movements, alcohol",
+                dosage: "NSAIDs as prescribed, Splints as needed."
+            },
+            "tennis elbow": {
+                medication: "NSAIDs, Physical therapy",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Repetitive arm movements, alcohol",
+                dosage: "NSAIDs as prescribed, Physical therapy as needed."
+            },
+            "frozen shoulder": {
+                medication: "NSAIDs, Corticosteroid injections",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Inactivity, alcohol",
+                dosage: "NSAIDs as prescribed, Corticosteroids as needed."
+            },
+            "rotator cuff injury": {
+                medication: "NSAIDs, Physical therapy",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Overhead activities, alcohol",
+                dosage: "NSAIDs as prescribed, Physical therapy as needed."
+            },
+            "herniated disc": {
+                medication: "NSAIDs, Muscle relaxants",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Heavy lifting, poor posture",
+                dosage: "NSAIDs as prescribed, Muscle relaxants as needed."
+            },
+            "sciatica": {
+                medication: "NSAIDs, Gabapentin",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Prolonged sitting, heavy lifting",
+                dosage: "NSAIDs as prescribed, Gabapentin 300-600mg three times daily."
+            },
+            "spinal stenosis": {
+                medication: "NSAIDs, Epidural injections",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Heavy lifting, prolonged standing",
+                dosage: "NSAIDs as prescribed, Injections as needed."
+            },
+            "spondylolisthesis": {
+                medication: "NSAIDs, Physical therapy",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "High-impact activities, poor posture",
+                dosage: "NSAIDs as prescribed, Physical therapy as needed."
+            },
+            "alopecia areata": {
+                medication: "Corticosteroids, Minoxidil",
+                include: "Antioxidant-rich foods, hydration",
+                exclude: "Stress, processed foods",
+                dosage: "Corticosteroids as prescribed, Minoxidil 5% twice daily."
+            },
+            "vitiligo": {
+                medication: "Topical corticosteroids, Phototherapy",
+                include: "Antioxidant-rich foods, hydration",
+                exclude: "Stress, chemical irritants",
+                dosage: "Corticosteroids as prescribed, Phototherapy as needed."
+            },
+            "rosacea": {
+                medication: "Metronidazole, Azelaic acid",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Spicy foods, alcohol",
+                dosage: "Metronidazole 0.75% gel twice daily, Azelaic acid 15% gel twice daily."
+            },
+            "hives": {
+                medication: "Antihistamines, Corticosteroids",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Allergens, alcohol",
+                dosage: "Antihistamines as prescribed, Corticosteroids as needed."
+            },
+            "shingles": {
+                medication: "Acyclovir, Pain relievers",
+                include: "Soft foods, hydration",
+                exclude: "Spicy foods, alcohol",
+                dosage: "Acyclovir 800mg 5 times daily for 7 days, Pain relievers as needed."
+            },
+            "herpes simplex": {
+                medication: "Acyclovir, Valacyclovir",
+                include: "Lysine-rich foods, hydration",
+                exclude: "Arginine-rich foods, alcohol",
+                dosage: "Acyclovir 400mg three times daily for 7 days, Valacyclovir as prescribed."
+            },
+            "warts": {
+                medication: "Salicylic acid, Cryotherapy",
+                include: "Balanced diet, hydration",
+                exclude: "Skin irritation, alcohol",
+                dosage: "Salicylic acid 17% daily, Cryotherapy as needed."
+            },
+            "fungal infection": {
+                medication: "Clotrimazole, Fluconazole",
+                include: "Probiotic-rich foods, hydration",
+                exclude: "Sugary foods, alcohol",
+                dosage: "Clotrimazole 1% cream twice daily, Fluconazole 150mg single dose."
+            },
+            "athlete’s foot": {
+                medication: "Terbinafine, Miconazole",
+                include: "Breathable footwear, hydration",
+                exclude: "Moist environments, alcohol",
+                dosage: "Terbinafine 1% cream twice daily, Miconazole as prescribed."
+            },
+            "ringworm": {
+                medication: "Clotrimazole, Terbinafine",
+                include: "Dry skin, hydration",
+                exclude: "Moist environments, alcohol",
+                dosage: "Clotrimazole 1% cream twice daily, Terbinafine 1% cream twice daily."
+            },
+            "candidiasis": {
+                medication: "Fluconazole, Nystatin",
+                include: "Probiotic-rich foods, hydration",
+                exclude: "Sugary foods, alcohol",
+                dosage: "Fluconazole 150mg single dose, Nystatin as prescribed."
+            },
+            "impetigo": {
+                medication: "Mupirocin, Cephalexin",
+                include: "Clean skin, hydration",
+                exclude: "Irritants, alcohol",
+                dosage: "Mupirocin 2% ointment three times daily, Cephalexin 500mg four times daily."
+            },
+            "cellulitis": {
+                medication: "Cephalexin, Clindamycin",
+                include: "Hydration, soft foods",
+                exclude: "Irritants, alcohol",
+                dosage: "Cephalexin 500mg four times daily, Clindamycin 300mg three times daily."
+            },
+            "folliculitis": {
+                medication: "Mupirocin, Antibiotics",
+                include: "Clean skin, hydration",
+                exclude: "Tight clothing, alcohol",
+                dosage: "Mupirocin 2% ointment twice daily, Antibiotics as prescribed."
+            },
+            "scabies": {
+                medication: "Permethrin, Ivermectin",
+                include: "Clean bedding, hydration",
+                exclude: "Irritants, alcohol",
+                dosage: "Permethrin 5% cream applied once, Ivermectin 200mcg/kg single dose."
+            },
+            "lice": {
+                medication: "Permethrin, Malathion",
+                include: "Clean bedding, hydration",
+                exclude: "Shared items, alcohol",
+                dosage: "Permethrin 1% lotion applied once, Malathion as prescribed."
+            },
+            "leprosy": {
+                medication: "Dapsone, Rifampin",
+                include: "Balanced diet, hydration",
+                exclude: "Alcohol, processed foods",
+                dosage: "Dapsone 100mg daily, Rifampin 600mg monthly."
+            },
+            "syphilis": {
+                medication: "Penicillin G, Doxycycline",
+                include: "Balanced diet, hydration",
+                exclude: "Alcohol, raw foods",
+                dosage: "Penicillin G as prescribed, Doxycycline 100mg twice daily for 14 days."
+            },
+            "gonorrhea": {
+                medication: "Ceftriaxone, Azithromycin",
+                include: "Hydration, soft foods",
+                exclude: "Alcohol, spicy foods",
+                dosage: "Ceftriaxone 250mg IM single dose, Azithromycin 1g single dose."
+            },
+            "chlamydia": {
+                medication: "Azithromycin, Doxycycline",
+                include: "Hydration, soft foods",
+                exclude: "Alcohol, spicy foods",
+                dosage: "Azithromycin 1g single dose, Doxycycline 100mg twice daily for 7 days."
+            },
+            "trichomoniasis": {
+                medication: "Metronidazole, Tinidazole",
+                include: "Hydration, soft foods",
+                exclude: "Alcohol, spicy foods",
+                dosage: "Metronidazole 2g single dose, Tinidazole 2g single dose."
+            },
+            "bacterial vaginosis": {
+                medication: "Metronidazole, Clindamycin",
+                include: "Probiotic-rich foods, hydration",
+                exclude: "Alcohol, sugary foods",
+                dosage: "Metronidazole 500mg twice daily for 7 days, Clindamycin as prescribed."
+            },
+            "pelvic inflammatory disease": {
+                medication: "Ceftriaxone, Doxycycline",
+                include: "Soft foods, hydration",
+                exclude: "Alcohol, spicy foods",
+                dosage: "Ceftriaxone 250mg IM single dose, Doxycycline 100mg twice daily for 14 days."
+            },
+            "endometriosis": {
+                medication: "NSAIDs, Hormonal therapy",
+                include: "Anti-inflammatory foods, hydration",
+                exclude: "Red meat, caffeine",
+                dosage: "NSAIDs as prescribed, Hormonal therapy as prescribed."
+            },
+            "uterine fibroids": {
+                medication: "Gonadotropin-releasing hormone agonists",
+                include: "Leafy greens, hydration",
+                exclude: "Red meat, alcohol",
+                dosage: "GnRH agonists as prescribed."
+            },
+            "ovarian cysts": {
+                medication: "Pain relievers, Hormonal contraceptives",
+                include: "Balanced diet, hydration",
+                exclude: "High-fat foods, alcohol",
+                dosage: "Pain relievers as needed, Contraceptives as prescribed."
+            },
+            "infertility": {
+                medication: "Clomiphene, Letrozole",
+                include: "Balanced diet, hydration",
+                exclude: "Alcohol, caffeine",
+                dosage: "Clomiphene 50-100mg daily for 5 days, Letrozole as prescribed."
+            },
+            "erectile dysfunction": {
+                medication: "Sildenafil, Tadalafil",
+                include: "Heart-healthy foods, hydration",
+                exclude: "Alcohol, fatty foods",
+                dosage: "Sildenafil 50-100mg as needed, Tadalafil 10-20mg as needed."
+            },
+            "benign prostatic hyperplasia": {
+                medication: "Tamsulosin, Finasteride",
+                include: "Plant-based foods, hydration",
+                exclude: "Caffeine, alcohol",
+                dosage: "Tamsulosin 0.4mg daily, Finasteride 5mg daily."
+            },
+            "prostatitis": {
+                medication: "Ciprofloxacin, Tamsulosin",
+                include: "Hydration, soft foods",
+                exclude: "Spicy foods, alcohol",
+                dosage: "Ciprofloxacin 500mg twice daily for 14 days, Tamsulosin as prescribed."
+            },
+            "testicular torsion": {
+                medication: "Pain relievers, Surgery",
+                include: "Soft foods, hydration",
+                exclude: "High-impact activities, alcohol",
+                dosage: "Pain relievers as needed, Surgery as required."
+            },
+            "hydrocele": {
+                medication: "Pain relievers, Surgery",
+                include: "Soft foods, hydration",
+                exclude: "Heavy lifting, alcohol",
+                dosage: "Pain relievers as needed, Surgery as required."
+            },
+            "varicocele": {
+                medication: "Pain relievers, Surgery",
+                include: "Balanced diet, hydration",
+                exclude: "Tight clothing, alcohol",
+                dosage: "Pain relievers as needed, Surgery as required."
+            }
+        };
+
+        // Function to send message when the user clicks the "Send" button or presses Enter
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+        // Send message when the user presses the Enter key
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Function to handle sending messages
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const query = input.value.trim().toLowerCase();
+            if (query) {
+                console.log("Query entered:", query); // Log for debugging
+                displayMessage(query, 'user-message');
+                displayResponse(query);
+                input.value = ''; // Clear input
+            }
+        }
+
+        // Function to display messages in the chat box
+        function displayMessage(message, className) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = className;
+            messageDiv.innerHTML = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
+        }
+
+        // Function to display the response
+        function displayResponse(query) {
+            let response;
+            if (diseaseInfo[query]) {
+                response = `
+                    <strong>Medication:</strong> ${diseaseInfo[query].medication}<br>
+                    <strong>Include:</strong> ${diseaseInfo[query].include}<br>
+                    <strong>Exclude:</strong> ${diseaseInfo[query].exclude}<br>
+                    <strong>Dosage:</strong> ${diseaseInfo[query].dosage}
+                `;
+            } else {
+                response = "Sorry, I don't have information about that disease.";
+            }
+            displayMessage(response, 'bot-message');
+        }
+    </script>
+</body>
+</html>
